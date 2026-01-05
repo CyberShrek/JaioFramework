@@ -1,7 +1,7 @@
 package com.cybershrek;
 
-import com.cybershrek.http.HandyClient;
-import com.cybershrek.parser.JSON;
+import com.cybershrek.tools.HandyClient;
+import com.cybershrek.tools.JSON;
 
 import java.io.IOException;
 import java.util.*;
