@@ -10,16 +10,18 @@ import java.util.*;
 public class HandyAgent {
 
     private final String model;
+    private final String instruction;
     private final HandyClient client = new HandyClient();
     private final LinkedList<Map<String, String>> messages = new LinkedList<>();
 
-    public HandyAgent(String model, String systemPrompt) {
+    public HandyAgent(String model, String instruction) {
         this.model = model;
+        this.instruction = instruction;
         Properties props = HandyResources.loadProperties("private.properties");
         client.url(props.getProperty("openrouter.url"))
               .header("Authorization", "Bearer " + props.getProperty("openrouter.key"));
 
-        addMessage("system", systemPrompt);
+        addMessage("system", instruction);
     }
     public HandyAgent(String model) {
         this(model, "");
@@ -29,11 +31,14 @@ public class HandyAgent {
 
         addMessage("user", prompt);
 
+        System.out.println(messages);
+
         String response = JSON.parse(client
                 .body(JSON.stringify(Map.of(
                         "model", model,
                         "temperature", temperature,
-                        "messages", messages
+                        "messages", messages,
+                        "instructions", instruction
                 )))
                 .POST()
                 .body()).get("choices").get(0).get("message").get("content").asText();
