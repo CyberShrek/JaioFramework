@@ -33,12 +33,7 @@ public class HandyAgent {
                 .body(JSON.stringify(Map.of(
                         "model", model,
                         "temperature", temperature,
-                        "messages", List.of(
-                                Map.of(
-                                        "role", "user",
-                                        "content", prompt
-                                )
-                        )
+                        "messages", messages
                 )))
                 .POST()
                 .body()).get("choices").get(0).get("message").get("content").asText();
