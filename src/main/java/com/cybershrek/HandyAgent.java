@@ -1,6 +1,7 @@
 package com.cybershrek;
 
 import com.cybershrek.tools.HandyClient;
+import com.cybershrek.tools.HandyResources;
 import com.cybershrek.tools.JSON;
 
 import java.io.IOException;
@@ -14,12 +15,7 @@ public class HandyAgent {
 
     public HandyAgent(String model, String systemPrompt) {
         this.model = model;
-        Properties props = new Properties();
-        try {
-            props.load(HandyAgent.class.getClassLoader().getResourceAsStream("private.properties"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Properties props = HandyResources.loadProperties("private.properties");
         client.url(props.getProperty("openrouter.url"))
               .header("Authorization", "Bearer " + props.getProperty("openrouter.key"));
 
