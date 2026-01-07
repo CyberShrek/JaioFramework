@@ -4,51 +4,71 @@ import com.cybershrek.tools.HandyClient;
 import com.cybershrek.tools.HandyResources;
 import com.cybershrek.tools.JSON;
 
-import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HandyAgent {
 
-    private final String model;
-    private final String instruction;
-    private final HandyClient client = new HandyClient();
-    private final LinkedList<Map<String, String>> messages = new LinkedList<>();
+    private final AgentConfig config;
 
-    public HandyAgent(String model, String instruction) {
-        this.model = model;
-        this.instruction = instruction;
-        Properties props = HandyResources.loadProperties("private.properties");
+    private final HandyClient client = new HandyClient();
+    private final List<Map<String, String>> instructions = new ArrayList<>();
+    private final LinkedList<Map<String, String>> messages = new LinkedList<>();
+    private final Properties props;
+
+    public HandyAgent(String model) {this(AgentConfig.builder().model(model).build());}
+    public HandyAgent(AgentConfig config) {
+        this.config = config;
+        props = HandyResources.loadProperties("private.properties");
         client.url(props.getProperty("openrouter.url"))
               .header("Authorization", "Bearer " + props.getProperty("openrouter.key"));
 
-        addMessage("system", instruction);
-    }
-    public HandyAgent(String model) {
-        this(model, "");
+        addInstruction("system", config.getInstruction());
     }
 
-    public String ask(String prompt, double temperature) {
+    public String chat(String prompt) {
+
+        if (getMessagesSizeInChars() > config.getMaxChars()){
+            if (config.getAggregationAllowed())
+                aggregateOldMessages();
+            else
+                cleanOldMessages();
+        }
 
         addMessage("user", prompt);
 
-        System.out.println(messages);
+        var body = JSON.stringify(Map.of(
+                "model", config.getModel(),
+                "temperature", config.getTemperature(),
+                "messages", Stream.concat(instructions.stream(), messages.stream()).collect(Collectors.toList()),
+                "instructions", instructions.getFirst().get("content")
+        ));
+        var response = client
+                        .body(body)
+                        .POST();
 
-        String response = JSON.parse(client
-                .body(JSON.stringify(Map.of(
-                        "model", model,
-                        "temperature", temperature,
-                        "messages", messages,
-                        "instructions", instruction
-                )))
-                .POST()
+        if (response.statusCode() != 200)
+            throw new RuntimeException("Something went wrong:\nRequest body: " + body + "\nResponse body: " + response.body());
+
+        String message = JSON.parse(response
                 .body()).get("choices").get(0).get("message").get("content").asText();
 
-        addMessage("assistant", response);
+        addMessage("assistant", message);
 
-        return response;
+        return message;
     }
-    public String ask(String prompt) {
-        return ask(prompt, 0.7);
+
+    public String instruct(String prompt) {
+        addInstruction("user", prompt);
+        return chat(prompt);
+    }
+
+    private void addInstruction(String role, String content) {
+        instructions.add(Map.of(
+                "role", role,
+                "content", content
+        ));
     }
 
     private void addMessage(String role, String content) {
@@ -56,5 +76,47 @@ public class HandyAgent {
                 "role", role,
                 "content", content
         ));
+    }
+
+    private void cleanOldMessages() {
+
+        if (config.getAggregationAllowed() && getMessagesSizeInChars() > config.getMaxChars()) {
+            System.out.print("АГГРЕГАЦИЯ:");
+            aggregateOldMessages();
+            System.out.println(messages.getFirst().get("content"));
+            System.out.println("Текущий размер: " + getMessagesSizeInChars());
+        }
+
+        while (config.getMaxChars() <= getMessagesSizeInChars()) {
+            messages.removeFirst();
+        }
+    }
+
+    private void aggregateOldMessages() {
+        HandyAgent agent = new HandyAgent(AgentConfig.builder()
+                .model(config.getModel())
+                .instruction(HandyResources.loadText("aggregator.prompt"))
+                .temperature(0.5)
+                .aggregationAllowed(false)
+                .build());
+
+        System.out.print("АГГРЕГАЦИЯ. Старый размер: " + getMessagesSizeInChars());
+
+        var aggregableMessages = new ArrayList<Map<String, String>>();
+        while (getMessagesSizeInChars() >= config.getMinChars()) {
+            aggregableMessages.add(messages.removeFirst());
+        }
+
+        String aggregate = agent.chat(JSON.stringify(aggregableMessages));
+        System.out.println(aggregate);
+        messages.addFirst(Map.of(
+                "role", "assistant",
+                "content", aggregate
+        ));
+        System.out.println("Новый размер: " + getMessagesSizeInChars());
+    }
+
+    private Integer getMessagesSizeInChars() {
+        return messages.stream().flatMap(m -> m.values().stream()).mapToInt(String::length).sum();
     }
 }
