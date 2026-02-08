@@ -1,5 +1,6 @@
 package com.cybershrek;
 
+import com.cybershrek.jaio.agent.AgentConfig;
 import com.cybershrek.tools.HandyClient;
 import com.cybershrek.tools.HandyResources;
 import com.cybershrek.tools.JSON;

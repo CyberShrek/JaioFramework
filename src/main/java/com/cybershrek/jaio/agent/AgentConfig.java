@@ -1,4 +1,4 @@
-package com.cybershrek;
+package com.cybershrek.jaio.agent;
 
 import lombok.Builder;
 import lombok.Getter;
