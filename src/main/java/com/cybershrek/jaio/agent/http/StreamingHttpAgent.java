@@ -20,7 +20,7 @@ public abstract class StreamingHttpAgent<I, O> extends HttpAgent<I, O> {
     }
 
     public void prompt(I input, Consumer<InputStream> chunkCr) throws AgentException {
-        client.sendAsync(reqBuilderFn.apply(input).build(), new HttpResponse.BodyHandler<Void>() {
+        client.sendAsync(reqFunction.apply(input).build(), new HttpResponse.BodyHandler<Void>() {
             @Override
             public HttpResponse.BodySubscriber<Void> apply(HttpResponse.ResponseInfo info) {
 
