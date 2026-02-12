@@ -2,12 +2,13 @@ package com.cybershrek.jaio.exception;
 
 import lombok.experimental.StandardException;
 
-import java.net.http.HttpResponse;
+import java.io.IOException;
+import java.io.InputStream;
 
 @StandardException
 public class HttpAgentException extends AgentException {
 
-    public HttpAgentException(String title, HttpResponse<String> response) {
-        super(title + ": " + response.statusCode() + "\n" + response.body());
+    public HttpAgentException(String title, int code) {
+        super(title + ": " + code);
     }
 }
