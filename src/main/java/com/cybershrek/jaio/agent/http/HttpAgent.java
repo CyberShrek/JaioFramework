@@ -109,6 +109,7 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
      * @throws HttpAgentException always thrown with the status code
      */
     protected O onRedirection(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
+        // Th
         throw new HttpAgentException("Redirection", response);
     }
 
