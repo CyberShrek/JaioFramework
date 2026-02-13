@@ -96,7 +96,7 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
      * @throws HttpAgentException always thrown with the status code
      */
     protected O onInformational(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
-        throw new HttpAgentException("Informational", response.statusCode());
+        throw new HttpAgentException("Informational", response);
     }
 
     /**
@@ -109,7 +109,7 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
      * @throws HttpAgentException always thrown with the status code
      */
     protected O onRedirection(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
-        throw new HttpAgentException("Redirection", response.statusCode());
+        throw new HttpAgentException("Redirection", response);
     }
 
     /**
@@ -122,7 +122,7 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
      * @throws HttpAgentException always thrown with the status code
      */
     protected O onError(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
-        throw new HttpAgentException("Error", response.statusCode());
+        throw new HttpAgentException("Error", response);
     }
 
     /**
