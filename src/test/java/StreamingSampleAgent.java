@@ -1,22 +1,20 @@
-import com.cybershrek.jaio.agent.http.HttpAgent;
+import com.cybershrek.jaio.agent.http.StreamingHttpAgent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class SampleAgent extends HttpAgent<String, String> {
+public class StreamingSampleAgent extends StreamingHttpAgent<String, String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String model;
     private final String key;
 
-    public SampleAgent(String model,
-                       String key) {
+    public StreamingSampleAgent(String model,
+                                String key) {
         super();
         this.model = model;
         this.key = key;
@@ -31,18 +29,26 @@ public class SampleAgent extends HttpAgent<String, String> {
                 .POST(HttpRequest.BodyPublishers.ofString(
                         mapper.writeValueAsString(Map.of(
                                 "model", model,
-                                "messages", List.of(Map.of("role", "user", "content", input))
+                                "messages", List.of(Map.of("role", "user", "content", input)),
+                                "stream", true
                         ))
                 )).build();
     }
 
     @Override
-    protected String readOkBody(InputStream body) throws IOException {
-        return mapper.readTree(body)
+    protected String readOkChunk(String data) throws IOException {
+        var chunk = mapper.readTree(data)
                 .path("choices")
                 .path(0)
-                .path("message")
+                .path("delta")
                 .path("content")
-                .asText();
+                .asText(null);
+
+        return chunk.isEmpty() ? null : chunk;
+    }
+
+    @Override
+    protected String mergeChunks(List<String> chunks) {
+        return String.join("", chunks);
     }
 }

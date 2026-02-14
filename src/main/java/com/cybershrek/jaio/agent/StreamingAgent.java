@@ -1,10 +1,10 @@
 package com.cybershrek.jaio.agent;
 
-import java.util.Objects;
+import com.cybershrek.jaio.exception.AgentException;
+
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-abstract interface StreamingAgent<I, O> {
+public interface StreamingAgent<I, O, C> {
 
-    void prompt(I input, Consumer<Object> consumer);
+    O prompt(I input, Consumer<C> consumer) throws AgentException;
 }
