@@ -6,7 +6,12 @@ import java.util.concurrent.CompletableFuture;
 public class Playground {
     @SneakyThrows
     public static void main(String[] args) {
-
+        var agent = new SampleAgent(
+                "stepfun/step-3.5-flash:free",
+                "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");
+        var streamingAgent = new StreamingSampleAgent(
+                "stepfun/step-3.5-flash:free",
+                "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");
 
         var future1 = CompletableFuture
                 .runAsync(() -> {

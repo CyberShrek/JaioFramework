@@ -9,14 +9,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public abstract class HttpAgent<I, O> implements Agent<I, O> {
 
-    protected final HttpClient client;
     private static final HttpClient DEFAULT_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
             .connectTimeout(Duration.ofSeconds(30))
             .build();
+
+    protected final HttpClient client;
 
     protected HttpAgent(HttpClient client) {
         Objects.requireNonNull(client, "Client cannot be null");
@@ -28,15 +30,18 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
     }
 
     @Override
-    public O prompt(I input) throws HttpAgentException {
+    public synchronized O prompt(I input) throws HttpAgentException {
         try {
             HttpRequest request = buildRequest(input);
-            return onResponse(client.send(request, HttpResponse.BodyHandlers.ofInputStream()));
+            return onResponse(
+                    client.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream()).get());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new HttpAgentException("Request interrupted", e);
         } catch (IOException e) {
             throw new HttpAgentException("I/O error during request", e);
+        } catch (ExecutionException e) {
+            throw new HttpAgentException("Execution error during request", e);
         }
     }
 
@@ -50,14 +55,6 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
         throw new HttpAgentException("Unhandled Success", response);
     }
 
-    protected O onInformationalResponse(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
-        throw new HttpAgentException("Informational", response);
-    }
-
-    protected O onRedirectionResponse(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
-        throw new HttpAgentException("Redirection", response);
-    }
-
     protected O onErrorResponse(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
         throw new HttpAgentException("Error", response);
     }
@@ -66,13 +63,13 @@ public abstract class HttpAgent<I, O> implements Agent<I, O> {
         int code = response.statusCode();
         try {
             if (code >= 100 && code < 200)
-                return onInformationalResponse(response);
+                throw new HttpAgentException("Informational", response);
 
             if (code >= 200 && code < 300)
                 return onSuccessResponse(response);
 
             if (code >= 300 && code < 400)
-                return onRedirectionResponse(response);
+                throw new HttpAgentException("Redirection", response);
 
             return onErrorResponse(response);
         } finally {
