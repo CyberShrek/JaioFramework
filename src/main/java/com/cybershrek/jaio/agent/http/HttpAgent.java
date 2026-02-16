@@ -1,14 +1,15 @@
 package com.cybershrek.jaio.agent.http;
 
 import com.cybershrek.jaio.agent.Agent;
+import com.cybershrek.jaio.agent.AgentContext;
 import com.cybershrek.jaio.exception.HttpAgentException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
@@ -18,21 +19,12 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
             .connectTimeout(Duration.ofSeconds(30))
             .build();
 
-    protected final HttpClient client;
-
-    protected HttpAgent(HttpClient client) {
-        Objects.requireNonNull(client, "Client cannot be null");
-        this.client = client;
-    }
-
-    protected HttpAgent() {
-        this(DEFAULT_CLIENT);
-    }
+    protected final HttpClient client = DEFAULT_CLIENT;
 
     @Override
-    public synchronized O prompt(I input) throws HttpAgentException {
+    protected O getResult() throws HttpAgentException {
         try {
-            HttpRequest request = buildRequest(input);
+            HttpRequest request = buildRequest();
             return onResponse(
                     client.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream()).get());
         } catch (InterruptedException e) {
@@ -45,7 +37,7 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
     }
 
-    protected abstract HttpRequest buildRequest(I input) throws IOException, HttpAgentException;
+    protected abstract HttpRequest buildRequest() throws IOException, HttpAgentException;
 
     protected abstract O readOkBody(InputStream body) throws IOException, HttpAgentException;
 

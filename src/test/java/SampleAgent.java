@@ -6,26 +6,19 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.Map;
 
-import com.cybershrek.jaio.agent.AgentContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class SampleAgent extends HttpAgent<String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String model;
     private final String key;
 
-    public SampleAgent(String model,
-                       String key) {
-        super();
-        this.model = model;
-        this.key = key;
-        useContext(new AgentContext());
-    }
 
     @Override
-    protected HttpRequest buildRequest(String input) throws IOException {
-        context.addMessage("user", input);
+    protected HttpRequest buildRequest() throws IOException {
         return HttpRequest.newBuilder()
                 .uri(URI.create("https://openrouter.ai/api/v1/chat/completions"))
                 .header("Authorization", "Bearer " + key)
@@ -40,14 +33,21 @@ public class SampleAgent extends HttpAgent<String, String> {
 
     @Override
     protected String readOkBody(InputStream body) throws IOException {
-        var output = mapper.readTree(body)
+        return mapper.readTree(body)
                 .path("choices")
                 .path(0)
                 .path("message")
                 .path("content")
                 .asText();
+    }
 
+    @Override
+    protected void addUserMessage(String input) {
+        context.addMessage("user", input);
+    }
+
+    @Override
+    protected void addAgentMessage(String output) {
         context.addMessage("assistant", output);
-        return output;
     }
 }

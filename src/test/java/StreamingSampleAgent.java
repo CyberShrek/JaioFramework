@@ -1,5 +1,6 @@
 import com.cybershrek.jaio.agent.http.StreamingHttpAgent;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.net.URI;
@@ -7,21 +8,15 @@ import java.net.http.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
+@RequiredArgsConstructor
 public class StreamingSampleAgent extends StreamingHttpAgent<String, String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String model;
     private final String key;
 
-    public StreamingSampleAgent(String model,
-                                String key) {
-        super();
-        this.model = model;
-        this.key = key;
-    }
-
     @Override
-    protected HttpRequest buildRequest(String input) throws IOException {
+    protected HttpRequest buildRequest() throws IOException {
         return HttpRequest.newBuilder()
                 .uri(URI.create("https://openrouter.ai/api/v1/chat/completions"))
                 .header("Authorization", "Bearer " + key)
@@ -29,7 +24,7 @@ public class StreamingSampleAgent extends StreamingHttpAgent<String, String, Str
                 .POST(HttpRequest.BodyPublishers.ofString(
                         mapper.writeValueAsString(Map.of(
                                 "model", model,
-                                "messages", List.of(Map.of("role", "user", "content", input)),
+                                "messages", context.getMessages(),
                                 "stream", true
                         ))
                 )).build();
@@ -52,5 +47,15 @@ public class StreamingSampleAgent extends StreamingHttpAgent<String, String, Str
         String output = String.join("", chunks);
         context.addMessage("assistant", output);
         return String.join("", chunks);
+    }
+
+    @Override
+    protected void addUserMessage(String input) {
+        context.addMessage("user", input);
+    }
+
+    @Override
+    protected void addAgentMessage(String output) {
+        context.addMessage("assistant", output);
     }
 }

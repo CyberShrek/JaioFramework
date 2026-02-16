@@ -1,6 +1,7 @@
 package com.cybershrek.jaio.agent.http;
 
 import com.cybershrek.jaio.agent.StreamingAgent;
+import com.cybershrek.jaio.exception.AgentException;
 import com.cybershrek.jaio.exception.HttpAgentException;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public abstract class StreamingHttpAgent<I, O, C> extends HttpAgent<I, O> implem
     private Consumer<C> chunkConsumer;
 
     @Override
-    public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws HttpAgentException {
+    public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws AgentException {
         this.chunkConsumer = chunkConsumer;
         return prompt(input);
     }
