@@ -49,6 +49,8 @@ public class StreamingSampleAgent extends StreamingHttpAgent<String, String, Str
 
     @Override
     protected String mergeChunks(List<String> chunks) {
+        String output = String.join("", chunks);
+        context.addMessage("assistant", output);
         return String.join("", chunks);
     }
 }

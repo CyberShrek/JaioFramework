@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-public abstract class HttpAgent<I, O> implements Agent<I, O> {
+public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
     private static final HttpClient DEFAULT_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)

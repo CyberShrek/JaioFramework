@@ -1,0 +1,25 @@
+package com.cybershrek.jaio.agent;
+
+import lombok.Getter;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+
+@Getter
+public class AgentContext {
+
+    protected final List<AgentMessage> messages = new LinkedList<>();
+
+    public void addMessage(AgentMessage message) {
+        messages.add(message);
+    }
+
+    public void addMessage(String role, Object content) {
+        messages.add(new AgentMessage(role, content));
+    }
+
+    public List<AgentMessage> getMessages(String role) {
+        return messages.stream().filter(m -> Objects.equals(m.getRole(), role)).toList();
+    }
+}

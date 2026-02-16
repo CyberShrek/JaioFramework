@@ -6,7 +6,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.Map;
 
-import com.cybershrek.jaio.agent.misc.AgentContext;
+import com.cybershrek.jaio.agent.AgentContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SampleAgent extends HttpAgent<String, String> {
@@ -15,13 +15,12 @@ public class SampleAgent extends HttpAgent<String, String> {
     private final String model;
     private final String key;
 
-    AgentContext context = new AgentContext("");
-
     public SampleAgent(String model,
                        String key) {
         super();
         this.model = model;
         this.key = key;
+        useContext(new AgentContext());
     }
 
     @Override
@@ -30,7 +29,7 @@ public class SampleAgent extends HttpAgent<String, String> {
         return HttpRequest.newBuilder()
                 .uri(URI.create("https://openrouter.ai/api/v1/chat/completions"))
                 .header("Authorization", "Bearer " + key)
-                .header("Content-Type", "application/json")
+                .header("Content-Type",  "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
                         mapper.writeValueAsString(Map.of(
                                 "model", model,

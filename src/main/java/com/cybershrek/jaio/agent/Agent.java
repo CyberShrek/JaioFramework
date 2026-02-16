@@ -2,7 +2,13 @@ package com.cybershrek.jaio.agent;
 
 import com.cybershrek.jaio.exception.AgentException;
 
-public interface Agent<I, O> {
+public abstract class Agent<I, O> {
 
-    O prompt(I input) throws AgentException;
+    protected AgentContext context;
+
+    abstract public O prompt(I input) throws AgentException;
+
+    protected void useContext(AgentContext context) {
+        this.context = context;
+    }
 }
