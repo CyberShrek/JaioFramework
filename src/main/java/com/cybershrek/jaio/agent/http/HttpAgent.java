@@ -2,7 +2,6 @@ package com.cybershrek.jaio.agent.http;
 
 import com.cybershrek.jaio.agent.Agent;
 import com.cybershrek.jaio.exception.HttpAgentException;
-import lombok.Getter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +11,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
@@ -73,52 +71,55 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
     }
 
-    protected class RequestConfigurator {
+    protected static final class RequestConfigurator {
 
-        @Getter private String url;
-        @Getter private String apiKey;
-        @Getter private String contentType = "application/json";
-        @Getter private String body        = "{}";
-        @Getter private Integer timeoutInSeconds = 30;
+        RequestConfigurator() {
+            // Default values
+            contentType("application/json");
+            timeoutInSeconds(30);
+            body("{}");
+        }
 
-        private final HttpRequest.Builder builder = HttpRequest.newBuilder();
+        private final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
-        public final RequestConfigurator url(String url) {
-            this.url = url;
+        public RequestConfigurator url(String url) {
+            requestBuilder.uri(URI.create(url));
             return this;
         }
 
-        public final RequestConfigurator apiKey(String apiKey) {
-            this.apiKey = apiKey;
+        public RequestConfigurator header(String name, String value) {
+            requestBuilder.header(name, value);
             return this;
         }
 
-        public final RequestConfigurator contentType(String contentType) {
-            this.contentType = contentType;
-            return this;
+        public RequestConfigurator authorization(String authScheme, String credentials) {
+            return header("Authorization", authScheme + " " + credentials);
+        }
+        public RequestConfigurator authorizationBearer(String token) {
+            return authorization("Bearer", token);
         }
 
-        public final RequestConfigurator body(String body) {
-            this.body = body;
+        public RequestConfigurator contentType(String contentType, String accept) {
+            requestBuilder
+                    .header("Content-Type",  contentType)
+                    .header("Accept",        accept);
             return this;
+        }
+        public RequestConfigurator contentType(String contentType) {
+            return contentType(contentType, contentType);
         }
 
         public RequestConfigurator timeoutInSeconds(Integer timeoutInSeconds) {
-            this.timeoutInSeconds = timeoutInSeconds;
+            requestBuilder.timeout(Duration.ofSeconds(timeoutInSeconds));
             return this;
         }
 
+        public void body(String body) {
+            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+        }
 
-
-        protected final HttpRequest build() {
-            return builder
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type",  contentType)
-                    .header("Accept",  contentType)
-                    .timeout(Duration.ofSeconds(timeoutInSeconds))
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
-                    .build();
+        protected HttpRequest build() {
+            return requestBuilder.build();
         }
     }
 }

@@ -12,13 +12,12 @@ public class SampleAgent extends HttpAgent<String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String model;
-    private final String key;
+    private final String apiKey;
 
     @Override
     protected void configureRequest(RequestConfigurator configurator) throws IOException {
-        configurator = new MyRequestConfigurator();
         configurator.url("https://openrouter.ai/api/v1/chat/completions")
-                .apiKey(key)
+                .authorizationBearer(apiKey)
                 .body(mapper.writeValueAsString(Map.of(
                         "model", model,
                         "messages", context.getMessages()
@@ -43,9 +42,5 @@ public class SampleAgent extends HttpAgent<String, String> {
     @Override
     protected void onOutput(String content) {
         context.addMessage("assistant", content);
-    }
-
-    protected class MyRequestConfigurator extends RequestConfigurator {
-
     }
 }
