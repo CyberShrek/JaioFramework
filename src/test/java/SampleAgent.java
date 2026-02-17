@@ -2,8 +2,6 @@ import com.cybershrek.jaio.agent.http.HttpAgent;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,19 +14,15 @@ public class SampleAgent extends HttpAgent<String, String> {
     private final String model;
     private final String key;
 
-
     @Override
-    protected HttpRequest buildRequest() throws IOException {
-        return HttpRequest.newBuilder()
-                .uri(URI.create("https://openrouter.ai/api/v1/chat/completions"))
-                .header("Authorization", "Bearer " + key)
-                .header("Content-Type",  "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        mapper.writeValueAsString(Map.of(
-                                "model", model,
-                                "messages", context.getMessages()
-                        ))
-                )).build();
+    protected void configureRequest(RequestConfigurator configurator) throws IOException {
+        configurator = new MyRequestConfigurator();
+        configurator.url("https://openrouter.ai/api/v1/chat/completions")
+                .apiKey(key)
+                .body(mapper.writeValueAsString(Map.of(
+                        "model", model,
+                        "messages", context.getMessages()
+                )));
     }
 
     @Override
@@ -42,12 +36,16 @@ public class SampleAgent extends HttpAgent<String, String> {
     }
 
     @Override
-    protected void addUserMessage(String input) {
-        context.addMessage("user", input);
+    protected void onInput(String content) {
+        context.addMessage("user", content);
     }
 
     @Override
-    protected void addAgentMessage(String output) {
-        context.addMessage("assistant", output);
+    protected void onOutput(String content) {
+        context.addMessage("assistant", content);
+    }
+
+    protected class MyRequestConfigurator extends RequestConfigurator {
+
     }
 }

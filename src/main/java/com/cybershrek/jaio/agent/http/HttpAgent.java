@@ -1,16 +1,18 @@
 package com.cybershrek.jaio.agent.http;
 
 import com.cybershrek.jaio.agent.Agent;
-import com.cybershrek.jaio.agent.AgentContext;
 import com.cybershrek.jaio.exception.HttpAgentException;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
@@ -22,11 +24,14 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
     protected final HttpClient client = DEFAULT_CLIENT;
 
     @Override
-    protected O getResult() throws HttpAgentException {
+    protected O requestOutput() throws HttpAgentException {
         try {
-            HttpRequest request = buildRequest();
-            return onResponse(
-                    client.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream()).get());
+            RequestConfigurator configurator = new RequestConfigurator();
+            configureRequest(configurator);
+            return onResponse(client
+                    .sendAsync(configurator.build(), HttpResponse.BodyHandlers.ofInputStream())
+                    .get()
+            );
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new HttpAgentException("Request interrupted", e);
@@ -36,8 +41,7 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
             throw new HttpAgentException("Execution error during request", e);
         }
     }
-
-    protected abstract HttpRequest buildRequest() throws IOException, HttpAgentException;
+    protected abstract void configureRequest(RequestConfigurator configurator)     throws IOException, HttpAgentException;
 
     protected abstract O readOkBody(InputStream body) throws IOException, HttpAgentException;
 
@@ -66,6 +70,55 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
             return onErrorResponse(response);
         } finally {
             response.body().close();
+        }
+    }
+
+    protected class RequestConfigurator {
+
+        @Getter private String url;
+        @Getter private String apiKey;
+        @Getter private String contentType = "application/json";
+        @Getter private String body        = "{}";
+        @Getter private Integer timeoutInSeconds = 30;
+
+        private final HttpRequest.Builder builder = HttpRequest.newBuilder();
+
+        public final RequestConfigurator url(String url) {
+            this.url = url;
+            return this;
+        }
+
+        public final RequestConfigurator apiKey(String apiKey) {
+            this.apiKey = apiKey;
+            return this;
+        }
+
+        public final RequestConfigurator contentType(String contentType) {
+            this.contentType = contentType;
+            return this;
+        }
+
+        public final RequestConfigurator body(String body) {
+            this.body = body;
+            return this;
+        }
+
+        public RequestConfigurator timeoutInSeconds(Integer timeoutInSeconds) {
+            this.timeoutInSeconds = timeoutInSeconds;
+            return this;
+        }
+
+
+
+        protected final HttpRequest build() {
+            return builder
+                    .uri(URI.create(url))
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type",  contentType)
+                    .header("Accept",  contentType)
+                    .timeout(Duration.ofSeconds(timeoutInSeconds))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
         }
     }
 }

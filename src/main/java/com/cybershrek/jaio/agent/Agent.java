@@ -9,19 +9,19 @@ public abstract class Agent<I, O> {
     protected final AgentContext context;
 
     public Agent() {
-        context = new AgentContext();
+        this(new AgentContext());
     }
 
     public synchronized final O prompt(I input) throws AgentException {
-        addUserMessage(input);
-        O result = getResult();
-        addAgentMessage(result);
-        return result;
+        onInput(input);
+        O output = requestOutput();
+        onOutput(output);
+        return output;
     };
 
-    abstract protected void addUserMessage(I input);
+    abstract protected void onInput(I content)  throws AgentException;
 
-    abstract protected O getResult() throws AgentException;
+    abstract protected O requestOutput()        throws AgentException;
 
-    abstract protected void addAgentMessage(O output);
+    abstract protected void onOutput(O content) throws AgentException;
 }

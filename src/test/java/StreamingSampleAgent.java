@@ -16,7 +16,7 @@ public class StreamingSampleAgent extends StreamingHttpAgent<String, String, Str
     private final String key;
 
     @Override
-    protected HttpRequest buildRequest() throws IOException {
+    protected HttpRequest configureRequest() throws IOException {
         return HttpRequest.newBuilder()
                 .uri(URI.create("https://openrouter.ai/api/v1/chat/completions"))
                 .header("Authorization", "Bearer " + key)
@@ -50,12 +50,12 @@ public class StreamingSampleAgent extends StreamingHttpAgent<String, String, Str
     }
 
     @Override
-    protected void addUserMessage(String input) {
-        context.addMessage("user", input);
+    protected void onInput(String content) {
+        context.addMessage("user", content);
     }
 
     @Override
-    protected void addAgentMessage(String output) {
-        context.addMessage("assistant", output);
+    protected void onOutput(String content) {
+        context.addMessage("assistant", content);
     }
 }

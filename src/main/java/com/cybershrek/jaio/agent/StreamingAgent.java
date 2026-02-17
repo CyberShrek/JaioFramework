@@ -4,7 +4,12 @@ import com.cybershrek.jaio.exception.AgentException;
 
 import java.util.function.Consumer;
 
-public interface StreamingAgent<I, O, C> {
+public abstract class StreamingAgent<I, O, C> extends Agent<I, O> {
 
-    O prompt(I input, Consumer<C> consumer) throws AgentException;
+    private Consumer<C> chunkConsumer;
+
+    O prompt(I input, Consumer<C> consumer) throws AgentException {
+        this.chunkConsumer = chunkConsumer;
+        return prompt(input);
+    };
 }
