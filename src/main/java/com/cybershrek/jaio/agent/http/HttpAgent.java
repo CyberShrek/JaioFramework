@@ -9,8 +9,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
@@ -24,7 +26,7 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
     @Override
     protected O requestOutput() throws HttpAgentException {
         try {
-            RequestConfigurator configurator = new RequestConfigurator();
+            Configurator configurator = new Configurator();
             configureRequest(configurator);
             return onResponse(client
                     .sendAsync(configurator.build(), HttpResponse.BodyHandlers.ofInputStream())
@@ -39,9 +41,22 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
             throw new HttpAgentException("Execution error during request", e);
         }
     }
-    protected abstract void configureRequest(RequestConfigurator configurator)     throws IOException, HttpAgentException;
+    protected void configureRequest(Configurator configurator) throws IOException {};
 
-    protected abstract O readOkBody(InputStream body) throws IOException, HttpAgentException;
+
+    protected void configureRequest(Configurator configurator) throws IOException {};
+
+    protected O readOkBody(InputStream body) throws IOException {
+        return null;
+    }
+
+    protected void onInput(String content) {
+        context.addMessage("user", content);
+    }
+
+    protected void onOutput(String content) {
+        context.addMessage("assistant", content);
+    }
 
     protected O onSuccessResponse(HttpResponse<InputStream> response) throws IOException, HttpAgentException {
         if (response.statusCode() == 200)
@@ -71,55 +86,86 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
     }
 
-    protected static final class RequestConfigurator {
-
-        RequestConfigurator() {
-            // Default values
-            contentType("application/json");
-            timeoutInSeconds(30);
-            body("{}");
-        }
+    protected class Configurator {
 
         private final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
-        public RequestConfigurator url(String url) {
+        public Request url(String url) {
             requestBuilder.uri(URI.create(url));
-            return this;
-        }
-
-        public RequestConfigurator header(String name, String value) {
-            requestBuilder.header(name, value);
-            return this;
-        }
-
-        public RequestConfigurator authorization(String authScheme, String credentials) {
-            return header("Authorization", authScheme + " " + credentials);
-        }
-        public RequestConfigurator authorizationBearer(String token) {
-            return authorization("Bearer", token);
-        }
-
-        public RequestConfigurator contentType(String contentType, String accept) {
-            requestBuilder
-                    .header("Content-Type",  contentType)
-                    .header("Accept",        accept);
-            return this;
-        }
-        public RequestConfigurator contentType(String contentType) {
-            return contentType(contentType, contentType);
-        }
-
-        public RequestConfigurator timeoutInSeconds(Integer timeoutInSeconds) {
-            requestBuilder.timeout(Duration.ofSeconds(timeoutInSeconds));
-            return this;
-        }
-
-        public void body(String body) {
-            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+            return new Request();
         }
 
         protected HttpRequest build() {
             return requestBuilder.build();
+        }
+
+        public class Request {
+
+            private Request() {
+                contentType("application/json");
+            }
+
+            public Request timeoutInSeconds(Integer timeoutInSeconds) {
+                requestBuilder.timeout(Duration.ofSeconds(timeoutInSeconds));
+                return this;
+            }
+
+            public Request header(String name, String value) {
+                requestBuilder.header(name, value);
+                return this;
+            }
+
+            public Request contentType(String contentType, String accept) {
+                requestBuilder
+                        .header("Content-Type",  contentType)
+                        .header("Accept",        accept);
+                return this;
+            }
+            public Request contentType(String contentType) {
+                return contentType(contentType, contentType);
+            }
+
+            public Body authorizationBearer(String token) {
+                return authorization("Bearer", token);
+            }
+            public Body authorizationBasic(String credentials) {
+                return authorization("Basic", credentials);
+            }
+            public Body authorization(String authScheme, String credentials) {
+                header("Authorization", authScheme + " " + credentials);
+                return new Body();
+            }
+        }
+
+        public class Body {
+            public Response body(HttpRequest.BodyPublisher bodyPublisher) {
+                requestBuilder.POST(bodyPublisher);
+                return new Response();
+            }
+            public Response body(InputStream body) {
+                return body(HttpRequest.BodyPublishers.ofInputStream(() -> body));
+            }
+            public Response body(String body, Charset charset) {
+                return body(HttpRequest.BodyPublishers.ofString(body, charset));
+            }
+            public Response body(String body) {
+                return body(HttpRequest.BodyPublishers.ofString(body));
+            }
+        }
+
+        public final class Response {
+
+            @FunctionalInterface
+            public interface ThrowingConsumer<I, O> {
+                void apply(I i) throws IOException;
+            }
+
+            private HttpResponse response;
+
+            public Response onOK(ThrowingConsumer<InputStream, O> handler) {
+                handler.apply(response.body());
+                return this;
+            }
         }
     }
 }

@@ -1,14 +1,12 @@
 import com.cybershrek.jaio.agent.http.HttpAgent;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
+import java.util.Map;
+
 @RequiredArgsConstructor
-public class SampleAgent extends HttpAgent<String, String> {
+public class SampleAgent2 extends HttpAgent<String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String model;
@@ -22,17 +20,13 @@ public class SampleAgent extends HttpAgent<String, String> {
                 .body(mapper.writeValueAsString(Map.of(
                         "model", model,
                         "messages", context.getMessages()
-                )));
-    }
-
-    @Override
-    protected String readOkBody(InputStream body) throws IOException {
-        return mapper.readTree(body)
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path("content")
-                .asText();
+                )))
+                .onOK(body -> mapper.readTree(body)
+                        .path("choices")
+                        .path(0)
+                        .path("message")
+                        .path("content")
+                        .asText());
     }
 
     @Override
