@@ -12,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
@@ -24,10 +23,9 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
     protected final HttpClient client = DEFAULT_CLIENT;
 
     @Override
-    protected O requestOutput() throws HttpAgentException {
+    protected O prompt(I input) throws HttpAgentException {
         try {
             Configurator configurator = new Configurator();
-            configureRequest(configurator);
             return onResponse(client
                     .sendAsync(configurator.build(), HttpResponse.BodyHandlers.ofInputStream())
                     .get()
@@ -41,21 +39,11 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
             throw new HttpAgentException("Execution error during request", e);
         }
     }
-    protected void configureRequest(Configurator configurator) throws IOException {};
 
-
-    protected void configureRequest(Configurator configurator) throws IOException {};
+    protected void configure(Configurator configurator) throws IOException {};
 
     protected O readOkBody(InputStream body) throws IOException {
         return null;
-    }
-
-    protected void onInput(String content) {
-        context.addMessage("user", content);
-    }
-
-    protected void onOutput(String content) {
-        context.addMessage("assistant", content);
     }
 
     protected O onSuccessResponse(HttpResponse<InputStream> response) throws IOException, HttpAgentException {

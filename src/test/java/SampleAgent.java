@@ -15,7 +15,7 @@ public class SampleAgent extends HttpAgent<String, String> {
     private final String apiKey;
 
     @Override
-    protected void configureRequest(Configurator configurator) throws IOException {
+    protected void configure(Configurator configurator) throws IOException {
         configurator
                 .url("https://openrouter.ai/api/v1/chat/completions")
                 .authorizationBearer(apiKey)
