@@ -9,26 +9,25 @@ import java.util.Map;
 public class SampleAgent2 extends HttpAgent<String, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final String model;
     private final String apiKey;
+    private final String model;
 
     @Override
-    protected void configure(Configurator configurator) throws IOException {
-        configurator
-                .onInput(content -> context.addMessage("user", content))
+    protected void onInput(String input, CallChain chain) throws IOException {
+        chain
+                .systemMessage("")
+                .userMessage(input)
                 .url("https://openrouter.ai/api/v1/chat/completions")
                 .authorizationBearer(apiKey)
-                .body(mapper.writeValueAsString(Map.of(
+                .send(mapper.writeValueAsString(Map.of(
                         "model", model,
                         "messages", context.getMessages()
                 )))
-                .onOK(body -> mapper.readTree(body)
+                .handleResponse(body -> mapper.readTree(body)
                         .path("choices")
                         .path(0)
                         .path("message")
                         .path("content")
-                        .asText())
-                .onError(e -> {})
-                .onOutput(content -> context.addMessage("assistant", content));
+                        .asText());
     }
 }

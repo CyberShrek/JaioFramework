@@ -18,6 +18,15 @@ public class AgentContext {
     public void addMessage(String role, Object content) {
         messages.add(new AgentMessage(role, content));
     }
+    public void addSystemMessage(Object content) {
+        addMessage("system", content);
+    }
+    public void addUserMessage(Object content) {
+        addMessage("user", content);
+    }
+    public void addAssistantMessage(Object content) {
+        addMessage("assistant", content);
+    }
 
     public List<AgentMessage> getMessages(String role) {
         return messages.stream().filter(m -> Objects.equals(m.getRole(), role)).toList();

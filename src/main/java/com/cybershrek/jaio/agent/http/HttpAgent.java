@@ -22,12 +22,14 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
     protected final HttpClient client = DEFAULT_CLIENT;
 
+    private final CallChain chain = new CallChain();
+
     @Override
-    protected O prompt(I input) throws HttpAgentException {
+    public synchronized O prompt(I input) throws HttpAgentException {
         try {
-            Configurator configurator = new Configurator();
             return onResponse(client
-                    .sendAsync(configurator.build(), HttpResponse.BodyHandlers.ofInputStream())
+                    .sendAsync(buildRequest(),
+                            HttpResponse.BodyHandlers.ofInputStream())
                     .get()
             );
         } catch (InterruptedException e) {
@@ -40,7 +42,12 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
     }
 
-    protected void configure(Configurator configurator) throws IOException {};
+    protected abstract void onInput(I input, CallChain chain) throws IOException;
+
+    protected HttpRequest buildRequest() {
+        return HttpRequest.newBuilder()
+                .build();
+    }
 
     protected O readOkBody(InputStream body) throws IOException {
         return null;
@@ -74,16 +81,50 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
     }
 
-    protected class Configurator {
+    protected class CallChain {
+
+        private ThrowingFunction<I, Object> inputCallback;
+
+        public CallChain systemMessage(Object content) {
+            context.addSystemMessage(content);
+            return this;
+        }
+
+        public InputLink userMessage(Object content){
+            return new InputLink();
+        }
+
+        public class InputLink {
+
+            public Request url(String url) {
+                requestBuilder.uri(URI.create(url));
+                return new Request();
+            }
+        }
+
+        protected class OutputLink {
+
+        }
+
+
+        protected class UserLink {
+
+        }
+
+
+
+        @FunctionalInterface
+        public interface ThrowingConsumer<I> {
+            void apply(I i) throws IOException;
+        }
+        @FunctionalInterface
+        public interface ThrowingFunction<I, O> {
+            O apply(I i) throws IOException;
+        }
 
         private final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
-        public Request url(String url) {
-            requestBuilder.uri(URI.create(url));
-            return new Request();
-        }
-
-        protected HttpRequest build() {
+        protected HttpRequest buildRequest() {
             return requestBuilder.build();
         }
 
@@ -126,18 +167,18 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         }
 
         public class Body {
-            public Response body(HttpRequest.BodyPublisher bodyPublisher) {
+            public Response send(HttpRequest.BodyPublisher bodyPublisher) {
                 requestBuilder.POST(bodyPublisher);
                 return new Response();
             }
-            public Response body(InputStream body) {
-                return body(HttpRequest.BodyPublishers.ofInputStream(() -> body));
+            public Response send(InputStream body) {
+                return send(HttpRequest.BodyPublishers.ofInputStream(() -> body));
             }
-            public Response body(String body, Charset charset) {
-                return body(HttpRequest.BodyPublishers.ofString(body, charset));
+            public Response send(String body, Charset charset) {
+                return send(HttpRequest.BodyPublishers.ofString(body, charset));
             }
-            public Response body(String body) {
-                return body(HttpRequest.BodyPublishers.ofString(body));
+            public Response send(String body) {
+                return send(HttpRequest.BodyPublishers.ofString(body));
             }
         }
 
@@ -150,8 +191,8 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
             private HttpResponse response;
 
-            public Response onOK(ThrowingConsumer<InputStream, O> handler) {
-                handler.apply(response.body());
+            public Response handleResponse(ThrowingConsumer<InputStream, O> handler) {
+//                handler.apply(response.body());
                 return this;
             }
         }
