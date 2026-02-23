@@ -12,17 +12,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class StreamingHttpAgent<I, O, C> extends HttpAgent<I, O> implements StreamingAgent<I, O, C> {
+public abstract class StreamingHttpAgent<I, O, C> {
 
     private Consumer<C> chunkConsumer;
 
-    @Override
+
     public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws AgentException {
         this.chunkConsumer = chunkConsumer;
-        return prompt(input);
+        return null;
     }
 
-    @Override
+
     protected O readOkBody(InputStream body) throws IOException, HttpAgentException {
         var consumer = this.chunkConsumer;
         var chunks   = new ArrayList<C>();

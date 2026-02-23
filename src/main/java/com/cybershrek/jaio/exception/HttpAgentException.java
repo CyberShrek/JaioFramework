@@ -3,7 +3,6 @@ package com.cybershrek.jaio.exception;
 import lombok.SneakyThrows;
 import lombok.experimental.StandardException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 
