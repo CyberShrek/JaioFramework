@@ -1,6 +1,5 @@
-package com.cybershrek.jaio.agent.http;
+package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.agent.StreamingAgent;
 import com.cybershrek.jaio.exception.AgentException;
 import com.cybershrek.jaio.exception.HttpAgentException;
 
@@ -21,7 +20,6 @@ public abstract class StreamingHttpAgent<I, O, C> {
         this.chunkConsumer = chunkConsumer;
         return null;
     }
-
 
     protected O readOkBody(InputStream body) throws IOException, HttpAgentException {
         var consumer = this.chunkConsumer;

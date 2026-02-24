@@ -1,11 +1,13 @@
-package com.cybershrek.jaio.agent.http;
+package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.agent.Agent;
-import com.cybershrek.jaio.agent.http.strategy.ApiStrategy;
+import com.cybershrek.jaio.agent.AgentContext;
+import com.cybershrek.jaio.agent.api.ApiStrategy;
+import com.cybershrek.jaio.exception.AgentException;
 import com.cybershrek.jaio.exception.HttpAgentException;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -13,9 +15,10 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
-public class HttpAgent<I, O> extends Agent<I, O> {
+public abstract class RestApiStrategy<O> implements ApiStrategy<O> {
 
-    protected final ApiStrategy<O> strategy;
+    protected final AgentContext context;
+    protected final RestApiModel model;
 
     private static final HttpClient DEFAULT_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -25,10 +28,10 @@ public class HttpAgent<I, O> extends Agent<I, O> {
     protected final HttpClient client = DEFAULT_CLIENT;
 
     @Override
-    public synchronized O prompt(I input) throws HttpAgentException {
+    public O process(AgentContext context) throws AgentException {
         try {
-            return strategy.readResponse(client
-                    .sendAsync(strategy.buildRequest(HttpRequest.newBuilder()), HttpResponse.BodyHandlers.ofInputStream())
+            return readResponse(client
+                    .sendAsync(buildRequest(HttpRequest.newBuilder()), HttpResponse.BodyHandlers.ofInputStream())
                     .get()
             );
         } catch (InterruptedException e) {
@@ -40,4 +43,8 @@ public class HttpAgent<I, O> extends Agent<I, O> {
             throw new HttpAgentException("Execution error during request", e);
         }
     }
+
+    public abstract HttpRequest buildRequest(HttpRequest.Builder builder) throws IOException;
+
+    public abstract O readResponse(HttpResponse<InputStream> response) throws IOException;
 }

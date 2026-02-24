@@ -1,7 +1,6 @@
-package com.cybershrek.jaio.agent.http.strategy;
+package com.cybershrek.jaio.agent.api.rest;
 
 import com.cybershrek.jaio.agent.AgentContext;
-import com.cybershrek.jaio.agent.http.HttpModel;
 import com.cybershrek.jaio.exception.HttpAgentException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,11 +12,11 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 
-public abstract class GenericApiStrategy<O> extends ApiStrategy<O> {
+public abstract class GenericRestApiStrategy<O> extends RestApiStrategy<O> {
 
     protected static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    public GenericApiStrategy(AgentContext context, HttpModel model) {
+    public GenericRestApiStrategy(AgentContext context, RestApiModel model) {
         super(context, model);
     }
 
