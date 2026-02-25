@@ -1,6 +1,6 @@
 package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.agent.AgentContext;
+import com.cybershrek.jaio.agent.context.BasicAgentContext;
 import com.cybershrek.jaio.exception.HttpAgentException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,7 +16,7 @@ public abstract class GenericRestApiStrategy<O> extends RestApiStrategy<O> {
 
     protected static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    public GenericRestApiStrategy(AgentContext context, RestApiModel model) {
+    public GenericRestApiStrategy(BasicAgentContext context, RestApiModel model) {
         super(context, model);
     }
 

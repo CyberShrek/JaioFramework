@@ -1,18 +1,22 @@
 package com.cybershrek.jaio.agent;
 
+import com.cybershrek.jaio.agent.api.ApiStrategy;
+import com.cybershrek.jaio.agent.context.AgentContext;
+import com.cybershrek.jaio.agent.context.BasicAgentContext;
 import com.cybershrek.jaio.exception.AgentException;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-
 @RequiredArgsConstructor
-public abstract class Agent<I, O> {
+public class Agent<I, O> {
 
     protected final AgentContext context;
+    protected final ApiStrategy<O> strategy;
 
-    public Agent() {
-        this(new AgentContext(new ArrayList<>()));
+    public Agent(ApiStrategy<O> strategy) {
+        this(new BasicAgentContext(), strategy);
     }
 
-    public abstract O prompt(I input) throws AgentException;
+    public O prompt(I input) throws AgentException {
+
+    };
 }

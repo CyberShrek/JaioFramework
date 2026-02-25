@@ -1,6 +1,6 @@
 package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.agent.AgentContext;
+import com.cybershrek.jaio.agent.context.BasicAgentContext;
 import com.cybershrek.jaio.agent.api.ApiStrategy;
 import com.cybershrek.jaio.exception.AgentException;
 import com.cybershrek.jaio.exception.HttpAgentException;
@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 public abstract class RestApiStrategy<O> implements ApiStrategy<O> {
 
-    protected final AgentContext context;
+    protected final BasicAgentContext context;
     protected final RestApiModel model;
 
     private static final HttpClient DEFAULT_CLIENT = HttpClient.newBuilder()
@@ -28,7 +28,7 @@ public abstract class RestApiStrategy<O> implements ApiStrategy<O> {
     protected final HttpClient client = DEFAULT_CLIENT;
 
     @Override
-    public O process(AgentContext context) throws AgentException {
+    public O prompt(BasicAgentContext context) throws AgentException {
         try {
             return readResponse(client
                     .sendAsync(buildRequest(HttpRequest.newBuilder()), HttpResponse.BodyHandlers.ofInputStream())

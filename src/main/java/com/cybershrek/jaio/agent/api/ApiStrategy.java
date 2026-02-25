@@ -1,9 +1,14 @@
 package com.cybershrek.jaio.agent.api;
 
-import com.cybershrek.jaio.agent.AgentContext;
-import com.cybershrek.jaio.exception.AgentException;
+import com.cybershrek.jaio.agent.context.AgentContext;
+import lombok.RequiredArgsConstructor;
 
-public interface ApiStrategy <O> {
+import java.io.IOException;
 
-    O process(AgentContext context) throws AgentException;
+@RequiredArgsConstructor
+public abstract class ApiStrategy <I, O> {
+
+    protected final AgentContext context;
+
+    abstract O prompt() throws IOException;
 }
