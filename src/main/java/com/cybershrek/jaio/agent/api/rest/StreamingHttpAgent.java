@@ -15,7 +15,6 @@ public abstract class StreamingHttpAgent<I, O, C> {
 
     private Consumer<C> chunkConsumer;
 
-
     public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws ModelException {
         this.chunkConsumer = chunkConsumer;
         return null;

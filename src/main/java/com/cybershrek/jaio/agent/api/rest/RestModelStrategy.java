@@ -7,7 +7,6 @@ import com.cybershrek.jaio.exception.HttpModelException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -34,13 +33,10 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
     @Override
     public final synchronized O prompt(I input) throws ModelException {
         try {
-            onInput(input);
-            var output = readResponse(client
-                    .sendAsync(buildRequest(HttpRequest.newBuilder()), HttpResponse.BodyHandlers.ofInputStream())
+            return readResponse(client
+                    .sendAsync(onInputBuildRequest(input, HttpRequest.newBuilder()), HttpResponse.BodyHandlers.ofInputStream())
                     .get()
             );
-            onOutput(output);
-            return output;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new HttpModelException("Request interrupted", e);
@@ -51,13 +47,9 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
         }
     }
 
-    protected abstract void onInput(I input) throws IOException;
-
-    protected abstract HttpRequest buildRequest(HttpRequest.Builder builder) throws IOException;
+    protected abstract HttpRequest onInputBuildRequest(I input, HttpRequest.Builder builder) throws IOException;
 
     protected abstract O readSuccessResponse(HttpResponse<InputStream> response) throws IOException;
-
-    protected abstract void onOutput(O output) throws IOException;
 
     private O readResponse(HttpResponse<InputStream> response) throws IOException {
         int code = response.statusCode();

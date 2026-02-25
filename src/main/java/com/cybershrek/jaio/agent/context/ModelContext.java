@@ -1,10 +1,11 @@
 package com.cybershrek.jaio.agent.context;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ModelContext {
 
-    public void addMessage(Object message);
+    void addMessage(Map<String, Object> message);
 
-    public List<Object> getMessages();
+    List<Map<String, Object>> getMessages();
 }

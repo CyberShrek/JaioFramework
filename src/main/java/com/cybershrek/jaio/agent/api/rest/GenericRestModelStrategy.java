@@ -2,6 +2,7 @@ package com.cybershrek.jaio.agent.api.rest;
 
 import com.cybershrek.jaio.agent.context.BasicModelContext;
 import com.cybershrek.jaio.agent.context.ModelContext;
+import com.cybershrek.jaio.exception.HttpModelException;
 import com.cybershrek.jaio.exception.ModelException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,56 +15,47 @@ import java.time.Duration;
 import java.util.Map;
 
 
-public class GenericRestModelStrategy<I, O> extends RestModelStrategy<I, O> {
+public abstract class GenericRestModelStrategy<I, O> extends RestModelStrategy<I, O> {
 
     protected static final ObjectMapper jsonMapper = new ObjectMapper();
 
     public GenericRestModelStrategy(ModelContext context, RestModel model) {
         super(context, model);
-    }
-
-    @Override
-    protected void onInput(I input) {
-        if (context.getMessages().isEmpty())
+        if (model.instruction() != null && context.getMessages().isEmpty())
             context.addMessage(Map.of(
                     "role", "system",
                     "content", model.instruction()
             ));
+    }
+
+
+    @Override
+    protected HttpRequest onInputBuildRequest(I input, HttpRequest.Builder builder) throws IOException {
         context.addMessage(Map.of(
                 "role", "user",
                 "content", input
         ));
-    }
-
-    @Override
-    public final HttpRequest buildRequest(HttpRequest.Builder builder) throws IOException {
         return builder
                 .uri(URI.create(model.url()))
                 .header("Authorization", "Bearer " + model.apiKey())
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
                 .timeout(Duration.ofMinutes(10))
-                .POST(HttpRequest.BodyPublishers.ofString(getRequestBody()))
+                .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.writeValueAsString(Map.of(
+                        "model", model.name(),
+                        "messages", context.getMessages()
+                ))))
                 .build();
-    }
-
-    protected String getRequestBody() throws IOException {
-        return jsonMapper.writeValueAsString(Map.of(
-                "model", model.name(),
-                "messages", context.getMessages()
-        ));
     }
 
     @Override
     protected O readSuccessResponse(HttpResponse<InputStream> response) throws IOException {
-        return null;
-    }
-
-    @Override
-    protected void onOutput(O output) {
+        var output = readOkResponseBody(response.body());
         context.addMessage(Map.of(
                 "role", "assistant",
                 "content", output
         ));
+        return output;
     }
+    protected abstract O readOkResponseBody(InputStream body) throws IOException;
 }
