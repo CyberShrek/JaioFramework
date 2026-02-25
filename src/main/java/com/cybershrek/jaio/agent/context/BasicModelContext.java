@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class BasicAgentContext implements AgentContext {
+public class BasicModelContext implements ModelContext {
 
     protected final List<Object> messages;
 
-    public BasicAgentContext() {
+    public BasicModelContext() {
         this(new ArrayList<>());
     }
 

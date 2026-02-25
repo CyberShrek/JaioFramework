@@ -2,7 +2,7 @@ package com.cybershrek.jaio.agent.context;
 
 import java.util.List;
 
-public interface AgentContext {
+public interface ModelContext {
 
     public void addMessage(Object message);
 

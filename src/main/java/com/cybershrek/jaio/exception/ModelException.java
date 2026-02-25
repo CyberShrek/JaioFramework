@@ -5,4 +5,4 @@ import lombok.experimental.StandardException;
 import java.io.IOException;
 
 @StandardException
-public class AgentException extends IOException {}
+public class ModelException extends IOException {}

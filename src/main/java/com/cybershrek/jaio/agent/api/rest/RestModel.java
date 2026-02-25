@@ -3,12 +3,13 @@ package com.cybershrek.jaio.agent.api.rest;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public record RestApiModel(
+public record RestModel(
         String name,
         String url,
-        String apiKey
+        String apiKey,
+        String instruction
 ) {
-    public RestApiModel {
+    public RestModel {
         try {
             new URL(url);
         } catch (MalformedURLException e) {

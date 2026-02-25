@@ -1,7 +1,7 @@
 package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.exception.AgentException;
-import com.cybershrek.jaio.exception.HttpAgentException;
+import com.cybershrek.jaio.exception.ModelException;
+import com.cybershrek.jaio.exception.HttpModelException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,12 +16,12 @@ public abstract class StreamingHttpAgent<I, O, C> {
     private Consumer<C> chunkConsumer;
 
 
-    public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws AgentException {
+    public synchronized O prompt(I input, Consumer<C> chunkConsumer) throws ModelException {
         this.chunkConsumer = chunkConsumer;
         return null;
     }
 
-    protected O readOkBody(InputStream body) throws IOException, HttpAgentException {
+    protected O readOkBody(InputStream body) throws IOException, HttpModelException {
         var consumer = this.chunkConsumer;
         var chunks   = new ArrayList<C>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(body))) {
@@ -42,9 +42,9 @@ public abstract class StreamingHttpAgent<I, O, C> {
         return mergeChunks(chunks);
     }
 
-    protected abstract C readOkChunk(String data) throws IOException, HttpAgentException;
+    protected abstract C readOkChunk(String data) throws IOException, HttpModelException;
 
-    protected abstract O mergeChunks(List<C> chunks) throws IOException, HttpAgentException;
+    protected abstract O mergeChunks(List<C> chunks) throws IOException, HttpModelException;
 
     protected String prepareChunkData(String line) {
         if (line.startsWith("data: ")) {
