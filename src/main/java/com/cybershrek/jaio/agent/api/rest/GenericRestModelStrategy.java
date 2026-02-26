@@ -1,9 +1,6 @@
 package com.cybershrek.jaio.agent.api.rest;
 
-import com.cybershrek.jaio.agent.context.BasicModelContext;
 import com.cybershrek.jaio.agent.context.ModelContext;
-import com.cybershrek.jaio.exception.HttpModelException;
-import com.cybershrek.jaio.exception.ModelException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -13,7 +10,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Map;
-
 
 public abstract class GenericRestModelStrategy<I, O> extends RestModelStrategy<I, O> {
 
@@ -27,7 +23,6 @@ public abstract class GenericRestModelStrategy<I, O> extends RestModelStrategy<I
                     "content", model.instruction()
             ));
     }
-
 
     @Override
     protected HttpRequest onInputBuildRequest(I input, HttpRequest.Builder builder) throws IOException {

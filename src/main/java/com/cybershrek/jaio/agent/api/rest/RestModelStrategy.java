@@ -4,6 +4,7 @@ import com.cybershrek.jaio.agent.api.ModelStrategy;
 import com.cybershrek.jaio.agent.context.ModelContext;
 import com.cybershrek.jaio.exception.ModelException;
 import com.cybershrek.jaio.exception.HttpModelException;
+import lombok.Builder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,8 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
         }
     }
 
+    protected abstract void onInput(I input, ApiChain chain);
+
     protected abstract HttpRequest onInputBuildRequest(I input, HttpRequest.Builder builder) throws IOException;
 
     protected abstract O readSuccessResponse(HttpResponse<InputStream> response) throws IOException;
@@ -73,5 +76,26 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
 
     protected O readErrorResponse(HttpResponse<InputStream> response) throws IOException {
         throw new HttpModelException("Error", response);
+    }
+
+    protected class ApiChain {
+
+        public Request url(String url) {
+            return Request.builder().url(url).build();
+        }
+
+        public ApiChain buildResponse() {
+            return this;
+        }
+
+        @Builder
+        public class Request {
+            protected final String url;
+        }
+
+        @Builder
+        public class Response {
+
+        }
     }
 }
