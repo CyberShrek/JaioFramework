@@ -1,10 +1,9 @@
-package com.cybershrek.jaio.agent.api.rest;
+package com.cybershrek.jaio.agent.api.http;
 
 import com.cybershrek.jaio.agent.api.ModelStrategy;
 import com.cybershrek.jaio.agent.context.ModelContext;
 import com.cybershrek.jaio.exception.ModelException;
 import com.cybershrek.jaio.exception.HttpModelException;
-import lombok.Builder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,12 +13,12 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
-public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
+public abstract class HttpApiStrategy<I, O> extends ModelStrategy<I, O> {
 
     protected final RestModel model;
 
-    public RestModelStrategy(ModelContext context,
-                             RestModel model) {
+    public HttpApiStrategy(ModelContext context,
+                           RestModel model) {
         super(context);
         this.model = model;
     }
@@ -48,8 +47,6 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
         }
     }
 
-    protected abstract void onInput(I input, ApiChain chain);
-
     protected abstract HttpRequest onInputBuildRequest(I input, HttpRequest.Builder builder) throws IOException;
 
     protected abstract O readSuccessResponse(HttpResponse<InputStream> response) throws IOException;
@@ -76,26 +73,5 @@ public abstract class RestModelStrategy<I, O> extends ModelStrategy<I, O> {
 
     protected O readErrorResponse(HttpResponse<InputStream> response) throws IOException {
         throw new HttpModelException("Error", response);
-    }
-
-    protected class ApiChain {
-
-        public Request url(String url) {
-            return Request.builder().url(url).build();
-        }
-
-        public ApiChain buildResponse() {
-            return this;
-        }
-
-        @Builder
-        public class Request {
-            protected final String url;
-        }
-
-        @Builder
-        public class Response {
-
-        }
     }
 }

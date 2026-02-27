@@ -1,4 +1,4 @@
-package com.cybershrek.jaio.agent.api.rest;
+package com.cybershrek.jaio.agent.api.http;
 
 import com.cybershrek.jaio.exception.ModelException;
 import com.cybershrek.jaio.exception.HttpModelException;

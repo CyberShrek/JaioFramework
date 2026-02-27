@@ -1,4 +1,4 @@
-package com.cybershrek.jaio.agent.api.rest;
+package com.cybershrek.jaio.agent.api.http;
 
 import java.net.MalformedURLException;
 import java.net.URL;
