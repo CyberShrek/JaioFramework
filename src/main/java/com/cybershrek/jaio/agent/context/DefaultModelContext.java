@@ -18,7 +18,8 @@ public class DefaultModelContext implements ModelContext {
     @Override
     public List<Map<String, Object>> getMessages() {
         var messages = new ArrayList<Map<String, Object>>();
-        messages.add(systemMessage);
+        if (systemMessage != null)
+            messages.add(systemMessage);
         messages.addAll(miscMessages);
         return messages;
     }

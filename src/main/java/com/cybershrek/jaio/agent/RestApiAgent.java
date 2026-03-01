@@ -26,7 +26,7 @@ public abstract class RestApiAgent<I, O> extends HttpAgent<I, O> {
 
     protected void configure(Config config) {
         config
-                .requestRetries(5, 1000)
+                .requestAttempts(5, 1000)
                 .requestTimeoutInMinutes(10);
     };
 
@@ -82,11 +82,11 @@ public abstract class RestApiAgent<I, O> extends HttpAgent<I, O> {
             return this;
         };
 
-        public Config requestRetries(int count) {
+        public Config requestAttempts(int count) {
             this.retryCount = count;
             return this;
         }
-        public Config requestRetries(int count, int delayInMillis) {
+        public Config requestAttempts(int count, int delayInMillis) {
             this.retryCount = count;
             this.retryDelayInMillis = delayInMillis;
             return this;
@@ -123,7 +123,8 @@ public abstract class RestApiAgent<I, O> extends HttpAgent<I, O> {
             }
 
             public Response send(String contentType, String body) {
-                withHeader("Content-Type", "application/json");
+                withHeader("Content-Type", contentType);
+                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
                 return new Response();
             }
             public Response sendJson(String body) {
@@ -142,7 +143,7 @@ public abstract class RestApiAgent<I, O> extends HttpAgent<I, O> {
             }
             public void thenAcceptSseChunks(ThrowingFunction<List<String>, O> mergeChunks) {
                 thenAccept("text/event-stream", body -> {
-                    var chunks   = new ArrayList<String>();
+                    var chunks = new ArrayList<String>();
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(body))) {
                         String line;
                         while ((line = reader.readLine()) != null) {

@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public abstract class HttpAgent<I, O> extends Agent<I, O> {
 
