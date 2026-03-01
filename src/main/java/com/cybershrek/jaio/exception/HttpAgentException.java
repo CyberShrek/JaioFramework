@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 
 @StandardException
-public class HttpModelException extends ModelException {
+public class HttpAgentException extends AgentException {
 
-    public HttpModelException(String title, int code, String message) {
+    public HttpAgentException(String title, int code, String message) {
         super(title + ": " + code + "\n" + message);
     }
 
-    public HttpModelException(String title, HttpResponse<InputStream> response) {
+    public HttpAgentException(String title, HttpResponse<InputStream> response) {
         this(title, response.statusCode(), readBody(response));
     }
 
