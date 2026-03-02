@@ -1,17 +1,17 @@
-package com.cybershrek.jaio.agent.context;
+package com.cybershrek.jaio.agent.memory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultModelContext implements ModelContext {
+public class DefaultAgentMemory implements AgentMemory {
 
     protected Map<String, Object> systemMessage;
     protected LinkedList<Map<String, Object>> miscMessages;
 
-    public DefaultModelContext() { this(List.of()); }
-    public DefaultModelContext(List<Map<String, Object>> messages) {
+    public DefaultAgentMemory() { this(List.of()); }
+    public DefaultAgentMemory(List<Map<String, Object>> messages) {
         miscMessages = new LinkedList<>(messages);
     }
 

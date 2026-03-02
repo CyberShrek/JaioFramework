@@ -1,20 +1,20 @@
 package com.cybershrek.jaio.agent;
 
-import com.cybershrek.jaio.agent.context.DefaultModelContext;
-import com.cybershrek.jaio.agent.context.ModelContext;
+import com.cybershrek.jaio.agent.memory.DefaultAgentMemory;
+import com.cybershrek.jaio.agent.memory.AgentMemory;
 import com.cybershrek.jaio.exception.AgentException;
 
 import java.util.function.Consumer;
 
 abstract public class Agent<I, O> {
 
-    protected final ModelContext context;
+    protected final AgentMemory memory;
 
-    protected Agent(ModelContext context) {
-        this.context = context;
+    protected Agent(AgentMemory memory) {
+        this.memory = memory;
     }
     public Agent() {
-        this(new DefaultModelContext());
+        this(new DefaultAgentMemory());
     }
 
     abstract public O prompt(I input) throws AgentException;

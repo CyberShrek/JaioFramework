@@ -1,9 +1,9 @@
-package com.cybershrek.jaio.agent.context;
+package com.cybershrek.jaio.agent.memory;
 
 import java.util.List;
 import java.util.Map;
 
-public interface ModelContext {
+public interface AgentMemory {
 
     List<Map<String, Object>> getMessages();
 

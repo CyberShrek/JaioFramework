@@ -40,7 +40,7 @@ public abstract class HttpAgent<I, O> extends Agent<I, O> {
         if (this.generationCallback != null)
             this.generationCallback.accept(result);
 
-        this.generationCallback = null;
+//        this.generationCallback = null;
         return result;
     };
 
